@@ -61,7 +61,7 @@ func writeCacheControl(ctx context.Context, w http.ResponseWriter, response *gra
 	}
 
 	if cachePolicy, ok := GetOverallCachePolicy(CacheControl(ctx)); ok {
-		cacheControl := fmt.Sprintf("max-age: %v %s", cachePolicy.MaxAge, strings.ToLower(string(cachePolicy.Scope)))
+		cacheControl := fmt.Sprintf("max-age=%v, %s", cachePolicy.MaxAge, strings.ToLower(string(cachePolicy.Scope)))
 		w.Header().Add("Cache-Control", cacheControl)
 	}
 }

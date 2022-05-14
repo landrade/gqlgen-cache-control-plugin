@@ -117,7 +117,7 @@ func TestCacheExtension(t *testing.T) {
 
 		t.Run("write cache control header", func(t *testing.T) {
 			resp := doRequest(cache.Middleware(h), "GET", "/graphql?query={name}", "")
-			assert.Equal(t, "max-age: 10 public", resp.Header().Get("Cache-Control"))
+			assert.Equal(t, "max-age=10, public", resp.Header().Get("Cache-Control"))
 		})
 
 		t.Run("not writes cache control header", func(t *testing.T) {
@@ -135,7 +135,7 @@ func TestCacheExtension(t *testing.T) {
 
 		t.Run("write cache control header", func(t *testing.T) {
 			resp := doRequest(cache.Middleware(h), "POST", "/graphql", `{"query":"{ name }"}`)
-			assert.Equal(t, "max-age: 10 public", resp.Header().Get("Cache-Control"))
+			assert.Equal(t, "max-age=10, public", resp.Header().Get("Cache-Control"))
 		})
 
 		t.Run("not writes cache control header", func(t *testing.T) {
