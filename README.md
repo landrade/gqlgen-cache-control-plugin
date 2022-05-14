@@ -1,5 +1,11 @@
 # Cache control plugin for GQLGEN
 
+Plugin to write cache-control directives. With this plugin, you can write a cache-control HTTP header and cache-control extension, following Apollo's rules. Refs:
+
+- https://www.apollographql.com/docs/apollo-server/performance/caching/
+- https://github.com/apollographql/apollo-server/tree/d5015f4ea00cadb2a74b09956344e6f65c084629/packages/apollo-cache-control
+
+
 ### Installation
 
 Install Go module:
