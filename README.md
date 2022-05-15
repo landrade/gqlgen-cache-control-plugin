@@ -55,7 +55,7 @@ func (r *commentResolver) Post(ctx context.Context, obj *model.Comment) (*model.
 ### CDN Caching
 
 It's possible to enable the Gqlgen to provide a `Cache-Control` header based on your cache hints in `GET` or `POST` requests.
-To do it you need wrap your server using `cache.Middleware` function. It will add `Cache-Control` header to all responses.
+To do it you need wrap your server using `cache.Middleware` function. It will add `Cache-Control` header to all responses that have set cache.
 
 
 ```go
