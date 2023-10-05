@@ -64,8 +64,31 @@ func main() {
 	srv = cache.Middleware(srv)
 	// ... do more things
 }
-````
+```
 
 Doing it, Gqlgen write the lowest max-age defined in cacheControl extensions.
 
 For more informations, see `_example` folder.
+
+### Force cache control in case of error
+
+By default, any existing cache hints will not result in a Cache-Control header in case of an error. 
+
+It's possible to force it by using the helper `cache.ContextWithForceCacheControl` to mark the request as cacheable even when GraphQL errors are present. 
+
+
+```go
+func (h *handler) GraphqlHandler() gin.HandlerFunc {
+	// ... setup gqlgen/graphql/handler
+	// ... setup server
+	srv.Use(cache.Extension{})
+	cachedServer := cache.Middleware(srv)
+
+	return func(c *gin.Context) {
+		ctx := cache.ContextWithForceCacheControl(c.Request.Context(), true)
+		c.Request = c.Request.WithContext(ctx)
+
+		cachedServer.ServeHTTP(c.Writer, c.Request)
+	}
+}
+```
