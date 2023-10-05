@@ -38,17 +38,17 @@ After you enable `cache.Extension`, you can set cache hints using `cache.SetHint
 
 ```go
 import (
-	"github.com/landrade/gqlgen-cache-control-plugin/cache"
-	// ...
+"github.com/landrade/gqlgen-cache-control-plugin/cache"
+// ...
 )
 func (r *commentResolver) Post(ctx context.Context, obj *model.Comment) (*model.Post, error) {
-    post, err := // getting post by comment
-    if err != nil {
-        return nil, err
-	}
-	// Set a CacheHint
-	cache.SetHint(ctx, cache.ScopePublic, 10*time.Second)
-	return post, nil
+post, err := // getting post by comment
+if err != nil {
+return nil, err
+}
+// Set a CacheHint
+cache.SetHint(ctx, cache.ScopePublic, 10*time.Second)
+return post, nil
 }
 ```
 
@@ -60,12 +60,35 @@ To do it you need wrap your server using `cache.Middleware` function. It will ad
 
 ```go
 func main() {
-	// ... setup server
-	srv = cache.Middleware(srv)
-	// ... do more things
+// ... setup server
+srv = cache.Middleware(srv)
+// ... do more things
 }
-````
+```
 
 Doing it, Gqlgen write the lowest max-age defined in cacheControl extensions.
 
 For more informations, see `_example` folder.
+
+### Force cache control in case of error
+
+By default, any existing cache hints will not result in a Cache-Control header in case of an error.
+
+It's possible to force it by adding a `forceCacheControl` key in the context.Context` with a `true` value.
+
+
+```go
+func (h *handler) GraphqlHandler() gin.HandlerFunc {
+	// ... setup gqlgen/graphql/handler
+	// ... setup server
+	srv.Use(cache.Extension{})
+	cachedServer := cache.Middleware(srv)
+
+	return func(c *gin.Context) {
+		ctx := context.WithValue(c.Request.Context(), "forceCacheControl", true)
+		c.Request = c.Request.WithContext(ctx)
+
+		cachedServer.ServeHTTP(c.Writer, c.Request)
+	}
+}
+````

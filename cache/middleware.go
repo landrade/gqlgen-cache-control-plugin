@@ -40,11 +40,13 @@ func (c responseWriter) Header() http.Header {
 }
 
 func (c responseWriter) Write(bytes []byte) (int, error) {
+	forceCacheControl, _ := c.r.Context().Value(forceCacheControlKey).(bool)
+
 	if c.w.Header().Get("Cache-Control") == "" {
 		resp := graphql.Response{}
 		err := json.Unmarshal(bytes, &resp)
 		if err == nil {
-			writeCacheControl(c.r.Context(), c.w, &resp)
+			writeCacheControl(c.r.Context(), c.w, &resp, forceCacheControl)
 		}
 	}
 
@@ -55,8 +57,8 @@ func (c responseWriter) WriteHeader(statusCode int) {
 	c.w.WriteHeader(statusCode)
 }
 
-func writeCacheControl(ctx context.Context, w http.ResponseWriter, response *graphql.Response) {
-	if len(response.Errors) > 0 {
+func writeCacheControl(ctx context.Context, w http.ResponseWriter, response *graphql.Response, forceCacheControl bool) {
+	if len(response.Errors) > 0 && !forceCacheControl {
 		return
 	}
 
