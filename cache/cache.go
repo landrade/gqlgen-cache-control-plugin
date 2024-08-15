@@ -9,29 +9,35 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-type Scope string
+type (
+	Scope string
+
+	ctxKey string
+
+	OverallCachePolicy struct {
+		MaxAge float64
+		Scope  Scope
+	}
+
+	CacheControlExtension struct {
+		Version int    `json:"version"`
+		Hints   []Hint `json:"hints"`
+		mu      sync.Mutex
+	}
+
+	Hint struct {
+		Path   ast.Path `json:"path"`
+		MaxAge float64  `json:"maxAge"`
+		Scope  Scope    `json:"scope"`
+	}
+)
 
 const (
 	ScopePublic  = Scope("PUBLIC")
 	ScopePrivate = Scope("PRIVATE")
+
+	cacheCtxKey ctxKey = "key"
 )
-
-type Hint struct {
-	Path   ast.Path `json:"path"`
-	MaxAge float64  `json:"maxAge"`
-	Scope  Scope    `json:"scope"`
-}
-
-type OverallCachePolicy struct {
-	MaxAge float64
-	Scope  Scope
-}
-
-type CacheControlExtension struct {
-	Version int    `json:"version"`
-	Hints   []Hint `json:"hints"`
-	mu      sync.Mutex
-}
 
 func (cache *CacheControlExtension) AddHint(h Hint) {
 	cache.mu.Lock()
@@ -65,15 +71,14 @@ func (cache *CacheControlExtension) OverallPolicy() OverallCachePolicy {
 	}
 }
 
-const key = "key"
-
 func WithCacheControlExtension(ctx context.Context) context.Context {
 	cache := &CacheControlExtension{Version: 1}
-	return context.WithValue(ctx, key, cache)
+
+	return context.WithValue(ctx, cacheCtxKey, cache)
 }
 
 func CacheControl(ctx context.Context) *CacheControlExtension {
-	c := ctx.Value(key)
+	c := ctx.Value(cacheCtxKey)
 	if c, ok := c.(*CacheControlExtension); ok {
 		return c
 	}
@@ -82,7 +87,7 @@ func CacheControl(ctx context.Context) *CacheControlExtension {
 }
 
 func SetHint(ctx context.Context, scope Scope, maxAge time.Duration) {
-	c := ctx.Value(key)
+	c := ctx.Value(cacheCtxKey)
 	if c, ok := c.(*CacheControlExtension); ok {
 		c.AddHint(Hint{
 			Path:   graphql.GetFieldContext(ctx).Path(),
